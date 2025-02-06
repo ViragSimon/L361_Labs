@@ -28,6 +28,14 @@ from .femnist_dataset import FEMNIST
 from flwr.common.logger import log
 
 
+class DPAdaptiveClipFlagError(BaseException):
+    """Exception in case adaptive clip flag is not boolean-valued."""
+
+
+class DPClientNormBitError(BaseException):
+    """Exception for the case when the client norm bit is not in metrics."""
+
+
 class IntentionalDropoutError(BaseException):
     """For clients to intentionally drop out of the federated learning process."""
 
