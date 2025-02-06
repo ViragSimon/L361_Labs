@@ -183,11 +183,11 @@ class SecureAggregationStrategy(FedAvg):
                     raise f
         for f in failures:
             log(INFO, f)
-        log(INFO, "Length of content is %s", len(results[0][1].metrics["content"]))
+        log(INFO, "Length of content is %s", len(results[0][1].metrics["content"]))  # type: ignore[reportArgumentType, arg-type]
         parameters_cost = sum(
             [sum(len(t) for t in r[1].parameters.tensors) for r in results]
         )
-        content_cost = sum([len(r[1].metrics["content"]) for r in results])
+        content_cost = sum([len(r[1].metrics["content"]) for r in results])  # type: ignore[reportArgumentType, arg-type]
         if self.stage == SecAggStages.STAGE_0:
             public_keys_dict: dict[int, tuple[bytes, bytes]] = {}
             ask_keys_results = results
