@@ -158,8 +158,11 @@ cython_debug/
 
 # FEMNIST dataset
 *femnist
+
+# Exclude device info
 device_info
 ._device_info
+
 # Histories
 histories
 
