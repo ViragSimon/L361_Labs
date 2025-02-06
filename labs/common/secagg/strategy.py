@@ -99,13 +99,13 @@ class SecureAggregationStrategy(FedAvg):
         self.dropout_num = num_dropouts
 
         # Runtime variables
-        self.proxy2id = {}
+        self.proxy2id: dict[ClientProxy, int] = {}
         self.stage = 0
-        self.surviving_clients = {}
-        self.public_keys_dict = {}
-        self.forward_packet_list_dict = {}
-        self.masked_vector = []
-        self.dropout_clients = {}
+        self.surviving_clients: dict[int, ClientProxy] = {}
+        self.public_keys_dict: dict[int, tuple[bytes, bytes]] = {}
+        self.forward_packet_list_dict: dict[int, list[ShareKeysPacket]] = {}
+        self.masked_vector: NDArrays = []
+        self.dropout_clients: dict[int, ClientProxy] = {}
 
     def initialize_parameters(self, client_manager: ClientManager) -> Parameters | None:
         """Initialize the (global) model parameters."""
@@ -215,7 +215,7 @@ class SecureAggregationStrategy(FedAvg):
                 result = load_content(fit_res.metrics)
                 ask_vectors_clients[idx] = client
                 packet_list = result
-                total_packet_list += packet_list
+                total_packet_list += packet_list  # type: ignore[arg-type]
 
             for idx in ask_vectors_clients:
                 forward_packet_list_dict[idx] = []

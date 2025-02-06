@@ -97,7 +97,7 @@ class SecureAggregationClient(NumPyClient):
         """
         self.reload()
         stage = config.pop("stage")
-        ret = 0
+        ret: Any = None
         ndarrays_object: NDArrays = []
 
         if stage == SecAggStages.STAGE_0:
