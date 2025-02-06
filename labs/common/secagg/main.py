@@ -91,17 +91,19 @@ def start_seeded_simulation(
 def run_sec_agg_demo() -> tuple[list[tuple[int, NDArrays]], History]:
     """Execute the secure aggregation demo."""
     strategy = SecureAggregationStrategy(
-        n_dim=PARAMETERS["n_dim"],
-        num_clients_per_round=PARAMETERS["num_clients_per_round"],
-        threshold=PARAMETERS["min_num_surviving_clients"],
-        num_dropouts=PARAMETERS["num_dropouts"],
+        n_dim=int(PARAMETERS["n_dim"]),
+        num_clients_per_round=int(PARAMETERS["num_clients_per_round"]),
+        threshold=int(PARAMETERS["min_num_surviving_clients"]),
+        num_dropouts=IntEnum(PARAMETERS["num_dropouts"]),
     )
     return start_seeded_simulation(
         client_fn=get_sec_agg_client_generator(
-            PARAMETERS["n_dim"], PARAMETERS["n_samples"], Path(PARAMETERS["data_dir"])
+            int(PARAMETERS["n_dim"]),
+            int(PARAMETERS["n_samples"]),
+            Path(str(PARAMETERS["data_dir"])),
         ),
-        num_clients=PARAMETERS["num_total_clients"],
-        config=ServerConfig(num_rounds=PARAMETERS["num_rounds"]),
+        num_clients=int(PARAMETERS["num_total_clients"]),
+        config=ServerConfig(num_rounds=int(PARAMETERS["num_rounds"])),
         strategy=strategy,
         name="sec_agg_demo",
     )
