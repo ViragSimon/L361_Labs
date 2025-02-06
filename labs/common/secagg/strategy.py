@@ -187,7 +187,7 @@ class SecureAggregationStrategy(FedAvg):
         parameters_cost = sum(
             [sum(len(t) for t in r[1].parameters.tensors) for r in results]
         )
-        content_cost = sum([len(r[1].metrics["content"]) for r in results])  # type: ignore[reportArgumentType, arg-type]
+        content_cost = sum([len(r[1].metrics["content"]) for r in results])  # type: ignore[reportArgumentType, arg-type, misc]
         if self.stage == SecAggStages.STAGE_0:
             public_keys_dict: dict[int, tuple[bytes, bytes]] = {}
             ask_keys_results = results

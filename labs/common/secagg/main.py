@@ -22,7 +22,7 @@ import torch
 from labs.common.secagg.client import get_sec_agg_client_generator
 from labs.common.secagg.strategy import SecureAggregationStrategy
 
-PARAMETERS = {
+PARAMETERS: dict[str, Any] = {
     "num_clients_per_round": 10,
     "num_total_clients": 100,
     "min_num_surviving_clients": 7,
