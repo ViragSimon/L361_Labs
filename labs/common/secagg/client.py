@@ -78,6 +78,7 @@ class SecureAggregationClient(NumPyClient):
         self.public_keys_dict: dict[int, tuple[bytes, bytes]] | None = None
         self.b: bytes | None = None
 
+
     def fit(
         self, parameters: NDArrays, config: dict[str, Scalar]
     ) -> tuple[NDArrays, int, dict[str, Scalar]]:
@@ -130,6 +131,7 @@ class SecureAggregationClient(NumPyClient):
             log(INFO, "CID %s reloading from %s", self.cid, self.cache_pth)
             with open(self.cache_pth, "rb") as f:
                 self.__dict__.update(pickle.load(f))
+                
 
 
 def get_sec_agg_client_generator(
