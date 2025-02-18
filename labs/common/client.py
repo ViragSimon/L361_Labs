@@ -1,14 +1,7 @@
-"""Flower client for PyTorch."""
+# Copyright 2025 Lorenzo Sani & Alexandru-Andrei Iacob
+# SPDX-License-Identifier: Apache-2.0
 
-# @File    :   client.py
-# @Time    :   2023/01/21 11:36:46
-# @Author  :   Alexandru-Andrei Iacob
-# @Contact :   aai30@cam.ac.uk
-# @Author  :   Lorenzo Sani
-# @Contact :   ls985@cam.ac.uk, lollonasi97@gmail.com
-# @Version :   1.0
-# @License :   (C)Copyright 2023, Alexandru-Andrei Iacob, Lorenzo Sani
-# @Desc    :   None
+"""Flower client for PyTorch."""
 
 from pathlib import Path
 from collections.abc import Callable, Sized
@@ -20,16 +13,17 @@ import torch
 from flwr.common.typing import NDArrays, Scalar
 from flwr.common.logger import log
 from torch.nn import Module
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
-from common.client_utils import (
+from .client_utils import (
     get_model_parameters,
     set_model_parameters,
-    load_FEMNIST_dataset,
-    train_FEMNIST,
-    test_FEMNIST,
+    load_femnist_dataset,
+    train_femnist,
+    test_femnist,
     get_device,
 )
+from .femnist_dataset import FEMNIST
 
 
 class FlowerClient(fl.client.NumPyClient):
@@ -162,9 +156,9 @@ class FlowerClient(fl.client.NumPyClient):
             drop_last=(name == "train"),
         )
 
-    def _load_dataset(self, name: str) -> Dataset:
+    def _load_dataset(self, name: str) -> FEMNIST:
         full_file: Path = self.partition_dir / str(self.cid)
-        return load_FEMNIST_dataset(
+        return load_femnist_dataset(
             mapping=full_file,
             name=name,
             data_dir=self.data_dir,
@@ -173,7 +167,7 @@ class FlowerClient(fl.client.NumPyClient):
     def _train(
         self, net: Module, train_loader: DataLoader, config: dict[str, Scalar]
     ) -> float:
-        return train_FEMNIST(
+        return train_femnist(
             net=net,
             train_loader=train_loader,
             epochs=int(config["epochs"]),
@@ -190,7 +184,7 @@ class FlowerClient(fl.client.NumPyClient):
     def _test(
         self, net: torch.nn.Module, test_loader: DataLoader, config: dict[str, Scalar]
     ) -> tuple[float, float]:
-        return test_FEMNIST(
+        return test_femnist(
             net=net,
             test_loader=test_loader,
             device=self.device,

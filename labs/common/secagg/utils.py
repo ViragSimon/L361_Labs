@@ -1,3 +1,6 @@
+# Copyright 2025 Lorenzo Sani & Alexandru-Andrei Iacob
+# SPDX-License-Identifier: Apache-2.0
+
 """Utility function for Secure Aggregation (SA) in Flower.
 
 These functions are for demonstration purposes only.
@@ -47,7 +50,7 @@ def save_content(content: Any, d: dict[str, Scalar]) -> dict[str, Scalar]:
 
 def load_content(d: dict[str, Scalar]) -> Any:
     """Return the pickled `content` of the dictionary and remove it."""
-    return pickle.loads(d.pop("content"))
+    return pickle.loads(d.pop("content"))  # type: ignore[reportArgumentType, arg-type]
 
 
 def build_fit_ins(
@@ -61,7 +64,8 @@ def build_fit_ins(
     )
 
 
-## Key Generation  ====================================================================
+# Key Generation  ====================================================================
+
 
 def generate_key_pairs() -> (
     tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey]
@@ -83,7 +87,7 @@ def private_key_to_bytes(sk: ec.EllipticCurvePrivateKey) -> bytes:
 
 def bytes_to_private_key(b: bytes) -> ec.EllipticCurvePrivateKey:
     """Deserialize private key."""
-    return serialization.load_pem_private_key(data=b, password=None)
+    return serialization.load_pem_private_key(data=b, password=None)  # type: ignore[return-value]
 
 
 def public_key_to_bytes(pk: ec.EllipticCurvePublicKey) -> bytes:
@@ -96,7 +100,7 @@ def public_key_to_bytes(pk: ec.EllipticCurvePublicKey) -> bytes:
 
 def bytes_to_public_key(b: bytes) -> ec.EllipticCurvePublicKey:
     """Deserialize public key."""
-    return serialization.load_pem_public_key(data=b)
+    return serialization.load_pem_public_key(data=b)  # type: ignore[return-value]
 
 
 def generate_shared_key(
@@ -118,7 +122,7 @@ def generate_shared_key(
     return base64.urlsafe_b64encode(derivedk)
 
 
-## Authenticated Encryption ============================================================
+# Authenticated Encryption ============================================================
 
 
 def encrypt(key: bytes, plaintext: bytes) -> bytes:
@@ -135,7 +139,7 @@ def decrypt(key: bytes, token: bytes) -> bytes:
     return f.decrypt(token)
 
 
-## Random Bytes Generator =============================================================
+# Random Bytes Generator =============================================================
 
 
 def rand_bytes(num: int = 32) -> bytes:
@@ -143,7 +147,8 @@ def rand_bytes(num: int = 32) -> bytes:
     return os.urandom(num)
 
 
-## Arithmetics ========================================================================
+# Arithmetics ========================================================================
+
 
 def factor_weights_combine(
     weights_factor: int, weights: list[np.ndarray]
@@ -151,13 +156,16 @@ def factor_weights_combine(
     """Combine the factor with the weights and return the combined weights."""
     return [np.array([weights_factor])] + weights
 
+
 def factor_weights_extract(weights: list[np.ndarray]) -> tuple[int, list[np.ndarray]]:
     """Extract the factor from the weights and return the rest of the weights."""
     return weights[0][0], weights[1:]
 
+
 def weights_shape(weights: list[np.ndarray]) -> list[tuple]:
     """Create a list of shapes of each element in weights."""
     return [arr.shape for arr in weights]
+
 
 def weights_zero_generate(
     dimensions_list: list[tuple], dtype: type = np.int64
@@ -165,33 +173,39 @@ def weights_zero_generate(
     """Generate a list of zero weights based on the dimensions list."""
     return [np.zeros(dimensions, dtype=dtype) for dimensions in dimensions_list]
 
+
 def weights_addition(a: list[np.ndarray], b: list[np.ndarray]) -> list[np.ndarray]:
     """Add two lists of weights element-wise."""
     return [a[idx] + b[idx] for idx in range(len(a))]
+
 
 def weights_subtraction(a: list[np.ndarray], b: list[np.ndarray]) -> list[np.ndarray]:
     """Subtract b from a element-wise."""
     return [a[idx] - b[idx] for idx in range(len(a))]
 
+
 def weights_mod(a: list[np.ndarray], b: int) -> list[np.ndarray]:
     """Take mod of a weights with an integer. If b is a power of 2, use bitwise and."""
-    if bin(b).count("1") == 1:
+    if (b).bit_count() == 1:
         msk = b - 1
         return [a[idx] & msk for idx in range(len(a))]
     return [a[idx] % b for idx in range(len(a))]
 
+
 def weights_multiply(a: list[np.ndarray], b: int) -> list[np.ndarray]:
     """Multiply a list of weights by an integer."""
     return [a[idx] * b for idx in range(len(a))]
+
 
 def weights_divide(a: list[np.ndarray], b: int) -> list[np.ndarray]:
     """Divide a list of weights by an integer."""
     return [a[idx] / b for idx in range(len(a))]
 
 
-## Quantization ========================================================================
+# Quantization ========================================================================
 
-def stochastic_round(arr: np.ndarray) -> np.ndarray[np.int32]:
+
+def stochastic_round(arr: np.ndarray) -> np.ndarray:
     """Round stochasticly the input array."""
     ret = np.ceil(arr).astype(np.int32)
     rand_arr = np.random.rand(*ret.shape)
@@ -228,7 +242,7 @@ def reverse_quantize(
     return reverse_quantized_list
 
 
-## Shamir's secret sharing  ============================================================
+# Shamir's secret sharing  ============================================================
 
 
 def create_shares(secret: bytes, threshold: int, num: int) -> list[bytes]:
@@ -244,7 +258,7 @@ def create_shares(secret: bytes, threshold: int, num: int) -> list[bytes]:
         (threshold, num, secret_padded[i : i + 16])
         for i in range(0, len(secret_padded), 16)
     ]
-    share_list = []
+    share_list: list[list[tuple[int, bytes]]] = []
     for _ in range(num):
         share_list.append([])
 
@@ -256,15 +270,16 @@ def create_shares(secret: bytes, threshold: int, num: int) -> list[bytes]:
                 # NOTE: `idx`` start with 1
                 share_list[idx - 1].append((idx, share))
 
-    for idx, shares in enumerate(share_list):
-        share_list[idx] = pickle.dumps(shares)
+    list_to_return: list[bytes] = []
+    for shares in share_list:
+        list_to_return.append(pickle.dumps(shares))
 
-    return share_list
+    return list_to_return
 
 
 def shamir_split(threshold: int, num: int, chunk: bytes) -> list[tuple[int, bytes]]:
     """Call the Shamir split function on the `threshold`, `num`, and `chunk`."""
-    return Shamir.split(threshold, num, chunk)
+    return Shamir.split(threshold, num, chunk, ssss=False)
 
 
 def combine_shares(share_list: list[bytes]) -> bytes:
@@ -291,10 +306,10 @@ def combine_shares(share_list: list[bytes]) -> bytes:
 
 def shamir_combine(shares: list[tuple[int, bytes]]) -> bytes:
     """Call the Shamir combine function of the `shares`."""
-    return Shamir.combine(shares)
+    return Shamir.combine(shares, ssss=False)
 
 
-## Miscrellaneous ======================================================================
+# Miscrellaneous ======================================================================
 
 
 def share_keys_plaintext_concat(
@@ -305,18 +320,16 @@ def share_keys_plaintext_concat(
     Unambiguous string concatenation of source, destination, and two secret shares.
     We assume they do not contain the 'abcdef' string.
     """
-    source, destination = int.to_bytes(source, 4, "little"), int.to_bytes(
+    source_bytes, destination_bytes = int.to_bytes(source, 4, "little"), int.to_bytes(
         destination, 4, "little"
     )
-    return b"".join(
-        [
-            source,
-            destination,
-            int.to_bytes(len(b_share), 4, "little"),
-            b_share,
-            sk_share,
-        ]
-    )
+    return b"".join([
+        source_bytes,
+        destination_bytes,
+        int.to_bytes(len(b_share), 4, "little"),
+        b_share,
+        sk_share,
+    ])
 
 
 def share_keys_plaintext_separate(plaintext: bytes) -> tuple[int, int, bytes, bytes]:
@@ -329,11 +342,11 @@ def share_keys_plaintext_separate(plaintext: bytes) -> tuple[int, int, bytes, by
         int.from_bytes(plaintext[4:8], "little"),
         int.from_bytes(plaintext[8:12], "little"),
     )
-    ret = [src, dst, plaintext[12 : 12 + mark], plaintext[12 + mark :]]
-    return ret
+    return (src, dst, plaintext[12 : 12 + mark], plaintext[12 + mark :])
 
 
 # Pseudo Bytes Generator ===============================================================
+
 
 def pseudo_rand_gen(
     seed: bytes, num_range: int, dimensions_list: list[tuple]
