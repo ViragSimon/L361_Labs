@@ -4,6 +4,7 @@
 """Secure Aggregation Client Class for Flower framework."""
 
 from collections.abc import Callable
+import copy
 from typing import Any
 import pickle
 from pathlib import Path
@@ -122,8 +123,23 @@ class SecureAggregationClient(NumPyClient):
 
     def cache(self) -> None:
         """Cache the variables of the class to a file."""
+        # Removing the key objects from the dictionary to prevent weird pickling errors
+        current_vars = self.get_vars()
+        current_vars.pop("sk1", None)
+        current_vars.pop("pk1", None)
+        current_vars.pop("sk2", None)
+        current_vars.pop("pk2", None)
         with open(self.cache_pth, "wb") as f:
-            pickle.dump(self.get_vars(), f)
+            pickle.dump(copy.deepcopy(current_vars), f)
+        assert self.sk1_bytes is not None, "Private key 1 bytes is None"
+        assert self.pk1_bytes is not None, "Public key 1 bytes is None"
+        assert self.sk2_bytes is not None, "Private key 2 bytes is None"
+        assert self.pk2_bytes is not None, "Public key 2 bytes is None"
+        # Set back the keys from the bytes representation
+        self.sk1 = bytes_to_private_key(self.sk1_bytes)
+        self.pk1 = bytes_to_public_key(self.pk1_bytes)
+        self.sk2 = bytes_to_private_key(self.sk2_bytes)
+        self.pk2 = bytes_to_public_key(self.pk2_bytes)
 
     def reload(self) -> None:
         """Reload the variables of the class from a file."""
@@ -131,7 +147,15 @@ class SecureAggregationClient(NumPyClient):
             log(INFO, "CID %s reloading from %s", self.cid, self.cache_pth)
             with open(self.cache_pth, "rb") as f:
                 self.__dict__.update(pickle.load(f))
-                
+            assert self.sk1_bytes is not None, "Private key 1 bytes is None"
+            assert self.pk1_bytes is not None, "Public key 1 bytes is None"
+            assert self.sk2_bytes is not None, "Private key 2 bytes is None"
+            assert self.pk2_bytes is not None, "Public key 2 bytes is None"
+            # Set back the keys from the bytes representation
+            self.sk1 = bytes_to_private_key(self.sk1_bytes)
+            self.pk1 = bytes_to_public_key(self.pk1_bytes)
+            self.sk2 = bytes_to_private_key(self.sk2_bytes)
+            self.pk2 = bytes_to_public_key(self.pk2_bytes)
 
 
 def get_sec_agg_client_generator(
@@ -217,8 +241,8 @@ def share_keys(
     assert client.sec_agg_id is not None, "Secure aggregation ID is None"
     # sanity check that own public keys are correct in dict
     if (
-        client.public_keys_dict[client.sec_agg_id][0] != client.pk1
-        or client.public_keys_dict[client.sec_agg_id][1] != client.pk2
+        client.public_keys_dict[client.sec_agg_id][0] != client.pk1_bytes
+        or client.public_keys_dict[client.sec_agg_id][1] != client.pk2_bytes
     ):
         raise Exception(  # noqa: TRY002
             "Own public keys are displayed in dict incorrectly, should not happen!"
